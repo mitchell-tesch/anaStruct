@@ -1014,7 +1014,10 @@ class SystemElements:
         system_components.assembly.process_conditions(ss)
 
         assert ss.reduced_system_matrix is not None
-        w, _ = np.linalg.eig(ss.reduced_system_matrix)
+        k = ss.reduced_system_matrix
+        # A stiffness matrix is symmetric, so its (real) eigenvalues come from
+        # the much faster symmetric solver; fall back for anything else.
+        w = np.linalg.eigvalsh(k) if np.allclose(k, k.T) else np.linalg.eigvals(k)
         return bool(np.all(w > min_eigen))
 
     def add_support_hinged(self, node_id: Union[int, Sequence[int]]) -> None:
